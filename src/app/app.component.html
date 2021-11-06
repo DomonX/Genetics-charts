@@ -1,1 +1,6 @@
-<p-chart type="line" [data]="data"></p-chart>
+<p-paginator
+  [rows]="1"
+  [totalRecords]="count$ | async"
+  (onPageChange)="currentPage$.next($event.page)"
+></p-paginator>
+<p-chart type="line" [data]="data$ | async"></p-chart>

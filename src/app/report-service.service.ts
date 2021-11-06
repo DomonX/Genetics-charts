@@ -25,16 +25,28 @@ export type DataSetConf = {
   backgroundColor?: string;
   borderColor?: string;
   fill?: boolean;
-  borderDash?: [number, number],
+  borderDash?: [number, number];
 };
 
 export const datasetConfigs: { [P in keyof Env]: DataSetConf } = {
   environmentRed: { borderColor: '#ff0000', backgroundColor: '#ff0000' },
   environmentGreen: { borderColor: '#00ff00', backgroundColor: '#00ff00' },
   environmentBlue: { borderColor: '#0000ff', backgroundColor: '#0000ff' },
-  avarageRed: { borderColor: '#ff0000', backgroundColor: '#ff0000', borderDash: [5, 5] },
-  avarageGreen: { borderColor: '#00ff00', backgroundColor: '#00ff00', borderDash: [5, 5] },
-  avarageBlue: { borderColor: '#0000ff', backgroundColor: '#0000ff', borderDash: [5, 5] },
+  avarageRed: {
+    borderColor: '#ff0000',
+    backgroundColor: '#ff0000',
+    borderDash: [5, 5],
+  },
+  avarageGreen: {
+    borderColor: '#00ff00',
+    backgroundColor: '#00ff00',
+    borderDash: [5, 5],
+  },
+  avarageBlue: {
+    borderColor: '#0000ff',
+    backgroundColor: '#0000ff',
+    borderDash: [5, 5],
+  },
   avarageCombatibility: {
     borderColor: 'rgba(255,255,0,1)',
     backgroundColor: 'rgba(255,255,0,0.2)',
@@ -52,7 +64,7 @@ export class ReportService {
 
   constructor(private http: HttpClient) {
     this.getReports().subscribe((i: RawReport) => {
-      this.data.next(i)
+      this.data.next(i);
     });
   }
 
@@ -66,7 +78,7 @@ export class ReportService {
       map((i) => i.slice(start, end)),
       map((i) =>
         i.filter(
-          (i, index, array) => index % Math.round(array.length / 10) === 0
+          (j, index, array) => index % Math.round(array.length / 10) === 0
         )
       ),
       map((i) => i.map((j) => this.mapEnv(j)))
@@ -74,7 +86,7 @@ export class ReportService {
   }
 
   public count(): Observable<number> {
-    return this.data.pipe(map(i => i.length));
+    return this.data.pipe(map((i) => i.length));
   }
 
   public getReportForChart(
@@ -96,22 +108,22 @@ export class ReportService {
   public toNgxChart(
     report: ChartReport
   ): { name: string; series: { name: string; value: number }[] }[] {
-    return Object.keys(report).map((key) => {
-      return {
-        name: key,
-        series: report[key].map((i, index) => ({
-          name: `${index}`,
-          value: Number.isNaN(i) ? 0 : i ?? 0,
-        })),
-      };
-    });
+    return Object.keys(report).map((key) => ({
+      name: key,
+      series: report[key].map((i, index) => ({
+        name: `${index}`,
+        value: Number.isNaN(i) ? 0 : i ?? 0,
+      })),
+    }));
   }
 
   public toChartJs(report: ChartReport): ChartData {
-    const indexes = report.avarageCombatibility.map((i, index) => index.toString());
+    const indexes = report.avarageCombatibility.map((i, index) =>
+      index.toString()
+    );
     return {
-      datasets: Object.keys(report)
-        .sort((a, b) => (a === 'comp' ? 0 : -1))
+      datasets: (Object.keys(report) as (keyof ChartReport)[])
+        .sort((a, b) => (a === 'avarageCombatibility' ? 0 : -1))
         .map((i: keyof ChartReport) => ({
           data: report[i],
           label: i,
@@ -126,7 +138,15 @@ export class ReportService {
       .split('.')
       .map((i) => i.replace(',', '.'))
       .map((i) => Number.parseFloat(i));
-    return { environmentRed: r, environmentGreen: g, environmentBlue: b, avarageCombatibility: comp, avarageRed: avgRed, avarageGreen: avgGreen, avarageBlue: avgBlue };
+    return {
+      environmentRed: r,
+      environmentGreen: g,
+      environmentBlue: b,
+      avarageCombatibility: comp,
+      avarageRed: avgRed,
+      avarageGreen: avgGreen,
+      avarageBlue: avgBlue,
+    };
   }
 
   private getReports(): Observable<RawReport> {
@@ -137,12 +157,12 @@ export class ReportService {
           .map((j) => j.split(';'))
           .reduce((acc, curr) => {
             curr.forEach(
-              (i, index) => (acc[index] = [...(acc[index] ?? []), i])
+              (j, index) => (acc[index] = [...(acc[index] ?? []), j])
             );
             return acc;
-          }, [] as RawReport).slice(0, -1)
-      ),
-      tap(console.log)
+          }, [] as RawReport)
+          .slice(0, -1)
+      )
     );
   }
 }

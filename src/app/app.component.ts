@@ -1,44 +1,47 @@
-import { Component } from "@angular/core";
-import { ElectronService } from "./core/services";
-import { TranslateService } from "@ngx-translate/core";
-import { APP_CONFIG } from "../environments/environment";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { ReportService } from './report-service.service';
+
+import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ChartData, ChartDataset } from 'chart.js';
+import { ElectronService } from './core/services';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
-  selector: "app-root",
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.scss"],
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
-  data: any;
+export class AppComponent implements OnInit, OnDestroy {
+  destroyed: Subject<void> = new Subject<void>();
+
+  public data$: Observable<ChartData>;
+  public count$: Observable<number>;
+
+  public currentPage$: Subject<number> = new BehaviorSubject<number>(0);
 
   constructor(
     private electronService: ElectronService,
-    private translate: TranslateService
-  ) {
-    this.translate.setDefaultLang("en");
-    console.log("APP_CONFIG", APP_CONFIG);
+    private translate: TranslateService,
+    private service: ReportService
+  ) {}
 
-    if (electronService.isElectron) {
-      console.log(process.env);
-      console.log("Run in electron");
-      console.log("Electron ipcRenderer", this.electronService.ipcRenderer);
-      console.log("NodeJS childProcess", this.electronService.childProcess);
-    } else {
-      console.log("Run in browser");
-    }
+  public ngOnInit(): void {
+    this.data$ = this.currentPage$.pipe(
+      switchMap((i) =>
+        this.service.getReportForChart(i, {
+          start: 0,
+          end: Infinity,
+        })
+      ),
+      map((i) => this.service.toChartJs(i)),
+      takeUntil(this.destroyed)
+    );
 
-    this.data = {
-      labels: ["January", "February", "March", "April", "May", "June", "July"],
-      datasets: [
-        {
-          label: "First Dataset",
-          data: [65, 59, 80, 81, 56, 55, 40],
-        },
-        {
-          label: "Second Dataset",
-          data: [28, 48, 40, 19, 86, 27, 90],
-        },
-      ],
-    };
+    this.count$ = this.service.count();
+  }
+
+  public ngOnDestroy(): void {
+    this.destroyed.next();
   }
 }
