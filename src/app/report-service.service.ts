@@ -13,10 +13,11 @@ export interface Env {
   avarageRed: number;
   avarageGreen: number;
   avarageBlue: number;
+  volume: number;
 }
 
 export type EnvReports = Env[];
-export type Report = EnvReports[];
+export type Report = EnvReports[] & { compatibilityPower: number; mutationChance: number; vegetationsPerEnvironment: number; mutationMode: boolean };
 
 export type RawEnvReport = string[];
 export type RawReport = RawEnvReport[];
@@ -52,6 +53,10 @@ export const datasetConfigs: { [P in keyof Env]: DataSetConf } = {
     backgroundColor: 'rgba(255,255,0,0.2)',
     fill: true,
   },
+  volume: {
+    borderColor: '#000000',
+    backgroundColor: '#000000',
+  }
 };
 
 export type ChartReport = Record<keyof Env, number[]>;
@@ -61,26 +66,33 @@ export type ChartReport = Record<keyof Env, number[]>;
 })
 export class ReportService {
   private data: ReplaySubject<RawReport> = new ReplaySubject<RawReport>();
+  private metaData: ReplaySubject<RawReport> = new ReplaySubject<RawReport>();
 
   constructor(private http: HttpClient) {
     this.getReports().subscribe((i: RawReport) => {
-      this.data.next(i);
+      this.data.next(i.slice(0, -4));
+      this.metaData.next(i.slice(4));
     });
   }
 
   public getReport(
     env: number,
-    page: { start: number; end: number }
+    page: { start: number; end: number },
+    round: number
   ): Observable<EnvReports> {
     const { start, end } = page;
     return this.data.pipe(
+      tap(console.log),
       map((i) => i[env]),
+      tap(console.log),
       map((i) => i.slice(start, end)),
+      tap(console.log),
       map((i) =>
-        i.filter(
-          (j, index, array) => index % Math.round(array.length / 10) === 0
+      i.filter(
+        (j, index, array) => index % Math.round(array.length / round) === 0
         )
-      ),
+        ),
+        tap(console.log),
       map((i) => i.map((j) => this.mapEnv(j)))
     );
   }
@@ -91,9 +103,10 @@ export class ReportService {
 
   public getReportForChart(
     env: number,
-    page: { start: number; end: number }
+    page: { start: number; end: number },
+    round: number
   ): Observable<ChartReport> {
-    return this.getReport(env, page).pipe(
+    return this.getReport(env, page, round).pipe(
       map((i) =>
         i.reduce((acc, curr) => {
           Object.keys(curr).forEach(
@@ -134,7 +147,7 @@ export class ReportService {
   }
 
   private mapEnv(val: string): Env {
-    const [r, g, b, comp, avgRed, avgGreen, avgBlue] = val
+    const [r, g, b, comp, avgRed, avgGreen, avgBlue, volume] = val
       .split('.')
       .map((i) => i.replace(',', '.'))
       .map((i) => Number.parseFloat(i));
@@ -146,6 +159,7 @@ export class ReportService {
       avarageRed: avgRed,
       avarageGreen: avgGreen,
       avarageBlue: avgBlue,
+      volume
     };
   }
 

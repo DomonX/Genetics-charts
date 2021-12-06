@@ -31,8 +31,8 @@ export class AppComponent implements OnInit, OnDestroy {
       switchMap((i) =>
         this.service.getReportForChart(i, {
           start: 0,
-          end: Infinity,
-        })
+          end: Infinity,          
+        }, 25)
       ),
       map((i) => this.service.toChartJs(i)),
       takeUntil(this.destroyed)
