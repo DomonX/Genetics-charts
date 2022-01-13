@@ -77,7 +77,6 @@ export class ReportService {
 
   public getReport(): Observable<EnvReports> {
     return combineLatest([this.data, this.config]).pipe(
-      tap(console.log),
       map(([data, config]) => data[config.env]
         .slice(config.start, config.end)
        
@@ -108,7 +107,6 @@ export class ReportService {
 
   public getReportForChart(): Observable<ChartReport> {
     return this.getReport().pipe(
-      tap(console.log),
       map((i) =>
         i.reduce((acc, curr) => {
           Object.keys(curr).forEach(
@@ -122,7 +120,6 @@ export class ReportService {
 
 
   public toChartJs(report: ChartReport): ChartData {
-    console.log(report);
     const indexes = report.avarageCombatibility.map((i, index) =>
       index.toString()
     );

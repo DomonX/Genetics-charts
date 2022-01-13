@@ -48,7 +48,4 @@ export class AppComponent implements OnInit, OnDestroy {
     this.destroyed.next();
   }
 
-  public onChanged(event: any): void {
-    console.log(event);
-  }
 }
