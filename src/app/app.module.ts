@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { CoreModule } from './core/core.module';
 
@@ -15,7 +15,11 @@ import { AppComponent } from './app.component';
 import { ChartModule } from 'primeng/chart';
 import { ReportService } from './report-service.service';
 import { PaginatorModule } from 'primeng/paginator';
+import {DropdownModule} from 'primeng/dropdown';
+import {SkeletonModule} from 'primeng/skeleton';
+
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
@@ -26,11 +30,14 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
   imports: [
     BrowserModule,
     FormsModule,
+    ReactiveFormsModule,
     HttpClientModule,
     CoreModule,
     AppRoutingModule,
     ChartModule,
     PaginatorModule,
+    SkeletonModule,
+    DropdownModule,
     BrowserAnimationsModule,
     TranslateModule.forRoot({
       loader: {
